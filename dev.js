@@ -69,6 +69,8 @@ async function ensureDev(fsMod, db, authMod, auth) {
   if ((u.email || "").toLowerCase() !== (H.devEmail || "").toLowerCase()) return { ok: false, why: "role" };
   await u.reload();
   if (!u.emailVerified) { return { ok: false, why: "verify" }; }
+  /* الـ token القديم لسه مكتوب فيه إن البريد مش متأكد؛ لازم token جديد قبل ما القواعد تشوفه */
+  await u.getIdToken(true);
   await fsMod.setDoc(ref, { role: "dev", email: u.email });
   return { ok: true, bootstrapped: true };
 }
@@ -228,7 +230,9 @@ async function afterLogin() {
   const r = await hub.check().catch(e => ({ ok: false, why: "err", e }));
   if (!r.ok) {
     if (r.why === "verify") return showVerify(hub, "مشروع الهَب", () => afterLogin());
-    await hub.logout(); return showLogin(r.why === "role" ? "الحساب ده مش حساب المطوّر." : errMsg(r.e));
+    await hub.logout();
+    return showLogin(r.why === "role" ? "الحساب ده مش حساب المطوّر." : /permission/.test(r.e?.code || "")
+      ? "مشروع الهَب رفض الطلب. اتأكد إنك لصقت hub.rules في Firestore › Rules ودوست Publish، وإن البريد اللي فيها هو بريدك." : errMsg(r.e));
   }
   if (r.bootstrapped) toast("صلاحية المطوّر اتفعّلت في مشروع الهَب.");
   $("#top").hidden = false; $("#who").textContent = hub.email;
