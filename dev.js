@@ -66,7 +66,7 @@ async function ensureDev(fsMod, db, authMod, auth) {
   const u = auth.currentUser, ref = fsMod.doc(db, "roles", u.uid);
   const r = await fsMod.getDoc(ref);
   if (r.exists() && r.data().role === "dev") return { ok: true };
-  if ((u.email || "").toLowerCase() !== (H.devEmail || "").toLowerCase()) return { ok: false, why: "role" };
+  if ((u.email || "").toLowerCase() !== (H.devEmail || "").toLowerCase()) return { ok: false, why: "role", email: u.email };
   await u.reload();
   if (!u.emailVerified) { return { ok: false, why: "verify" }; }
   /* الـ token القديم لسه مكتوب فيه إن البريد مش متأكد؛ لازم token جديد قبل ما القواعد تشوفه */
@@ -231,7 +231,7 @@ async function afterLogin() {
   if (!r.ok) {
     if (r.why === "verify") return showVerify(hub, "مشروع الهَب", () => afterLogin());
     await hub.logout();
-    return showLogin(r.why === "role" ? "الحساب ده مش حساب المطوّر." : /permission/.test(r.e?.code || "")
+    return showLogin(r.why === "role" ? `الحساب (${r.email}) مش هو بريد المطوّر المكتوب في hub-config.js (${H.devEmail || "فاضي"}).` : /permission/.test(r.e?.code || "")
       ? "مشروع الهَب رفض الطلب. اتأكد إنك لصقت hub.rules في Firestore › Rules ودوست Publish، وإن البريد اللي فيها هو بريدك." : errMsg(r.e));
   }
   if (r.bootstrapped) toast("صلاحية المطوّر اتفعّلت في مشروع الهَب.");
