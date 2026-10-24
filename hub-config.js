@@ -5,7 +5,7 @@
    ───────────────────────────────────────────────────────────── */
 window.HUB_CONFIG = {
   /* بريد المطوّر: نفس البريد اللي في firestore.rules عند كل عميل وفي hub.rules */
-  devEmail: "",
+     devEmail: "urcod.eg@gmail.com",
 
   /* إعدادات مشروع الهَب: Firebase Console › Project settings › Web app */
   firebase: {
